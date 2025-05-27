@@ -1,3 +1,4 @@
+import json
 import os
 import uuid
 from django.db import transaction
@@ -22,6 +23,13 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
         if not dump_file:
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
         
+        labels = []
+        if 'labels' in request.data:
+            try:
+                labels = json.loads(request.data['labels'])
+            except ValueError:
+                return Response({'error': 'Invalid labels format'}, status=status.HTTP_400_BAD_REQUEST)
+        
         original_name = dump_file.name
         stored_name = uuid.uuid4().hex
         dest = self._build_path(stored_name)
@@ -29,13 +37,12 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
         try:
             self._save_file(dump_file, dest)
             with transaction.atomic():
-                dump = CrashDump.objects.create(original_name=original_name, stored_name=stored_name)
+                dump = CrashDump.objects.create(original_name=original_name, stored_name=stored_name, labels=labels)
+                serializer = self.get_serializer(dump)
         except Exception:
-            if os.path.isfile(dest):
-                os.remove(dest)
+            self._delete_file(dest)
             raise
         
-        serializer = self.get_serializer(dump)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     # Override update method
@@ -68,13 +75,34 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
         
         return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=instance.original_name)
     
+    # Returns CrashDump's that
+    @action(detail=False, methods=['get'], url_path=r'by-label/(?P<label>[^/.]+)')
+    def get_by_label(self, request, label=None):
+        qs = self.filter_queryset(CrashDump.objects.filter(labels__icontains=f'"{label}"'))
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
+    
     # Private helper to handle update for PUT/PATCH
     def _update_file_and_metadata(self, request, partial, *args, **kwargs):
         instance = self.get_object()
         dump_file = request.FILES.get('file')
         
-        old_path = new_name = None
+        if not partial and not dump_file:
+            return Response({'error': 'File is required for PUT requests.'}, status=status.HTTP_400_BAD_REQUEST)
         
+        labels = []
+        if 'labels' in request.data:
+            try:
+                labels = json.loads(request.data['labels'])
+            except ValueError:
+                return Response({'error': 'Invalid labels format'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        new_dest = None
         if dump_file:
             old_path = self._build_path(instance.stored_name)
             new_name = uuid.uuid4().hex
@@ -82,28 +110,29 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
             try:
                 self._save_file(dump_file, new_dest)
             except Exception:
-                if os.path.isfile(new_dest):
-                    os.remove(new_dest)
+                self._delete_file(new_dest)
                 raise
             
-        with transaction.atomic():
-            # Original name passed in PATCH
-            if 'original_name' in request.data:
-                instance.original_name = request.data['original_name']
             # Full PUT file replace
-            elif dump_file and not partial:
-                instance.original_name = dump_file.name
+            instance.original_name = dump_file.name
+            instance.stored_name = new_name
+        
+        # Labels passed in PATCH
+        if 'labels' in request.data:
+            instance.labels = labels
             
-            # Always updated hashed name if new file is passed
-            if dump_file:
-                instance.stored_name = new_name
-            
-            serializer = self.get_serializer(instance, data=request.data, partial=partial)
-            serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer)
-            
-            if dump_file:
-                transaction.on_commit(lambda: self._delete_file(old_path))
+        try:
+            with transaction.atomic():
+                serializer = self.get_serializer(instance, data=request.data, partial=partial)
+                serializer.is_valid(raise_exception=True)
+                self.perform_update(serializer)
+                
+                if dump_file:
+                    transaction.on_commit(lambda: self._delete_file(old_path))
+        except Exception:
+            if new_dest:
+                self._delete_file(new_dest)
+            raise
         
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -113,9 +142,9 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
         return os.path.join(settings.DUMPS_BASE_DIR, a, b, stored_name)
     
     @staticmethod
-    def _save_file(dump_file, dest: str) -> None:
-        os.makedirs(os.path.dirname(dest), exist_ok=True)
-        with open(dest, 'wb') as out:
+    def _save_file(dump_file, path: str) -> None:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'wb') as out:
             for chunk in dump_file.chunks():
                 out.write(chunk)
                 
