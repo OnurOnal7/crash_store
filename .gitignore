@@ -16,3 +16,6 @@ dumps/migrations/
 
 # macOS Finder
 .DS_Store
+
+# JetBrains IDE settings
+.idea/
