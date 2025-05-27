@@ -4,7 +4,15 @@ A simple Django REST API for uploading, storing, retrieving, and deleting crash 
 
 ---
 
-## Overview
+## Frontend
+
+*To be implemented.*
+
+---
+
+## Backend
+
+### Overview
 
 * **Tech stack:** Django 5.2.1, Django REST Framework
 * **Storage layout:** Uploaded dumps are saved under `<DUMPS_BASE_DIR>/<first_char>/<second_char>/<uuid>`
@@ -16,9 +24,9 @@ A simple Django REST API for uploading, storing, retrieving, and deleting crash 
 
 ---
 
-## Quick Start
+### Quick Start
 
-### 1. Clone & Install
+#### 1. Clone & Install
 
 ```bash
 git clone git@gitlab.com:simsoft/crash_store.git
@@ -28,7 +36,7 @@ source .venv/bin/activate
 pip install django djangorestframework
 ```
 
-### 2. Configuration
+#### 2. Configuration
 
 1. Copy the template:
 
@@ -51,14 +59,14 @@ pip install django djangorestframework
    config.ini
    ```
 
-### 3. Database & Migrations
+#### 3. Database & Migrations
 
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 4. Run the Server
+#### 4. Run the Server
 
 ```bash
 python manage.py runserver
@@ -68,17 +76,17 @@ By default, the API is served at `http://127.0.0.1:8000/api/dumps/`.
 
 ---
 
-## API Endpoints
+### API Endpoints
 
 > All endpoints expect or return JSON unless noted.
 
-### List dumps
+#### List dumps
 
 ```
 GET /api/dumps/
 ```
 
-### Upload a new dump
+#### Upload a new dump
 
 ```
 POST /api/dumps/
@@ -87,13 +95,13 @@ Form-data fields:
   • file = (binary file)
 ```
 
-### Retrieve a dump’s metadata
+#### Retrieve a dump’s metadata
 
 ```
 GET /api/dumps/{id}/
 ```
 
-### Download the raw dump file
+#### Download the raw dump file
 
 ```
 GET /api/dumps/{id}/download/
@@ -101,7 +109,7 @@ GET /api/dumps/{id}/download/
 
 Returns a `FileResponse` with `Content-Disposition: attachment; filename=<original_name>`
 
-### Full replace (PUT)
+#### Full replace (PUT)
 
 ```
 PUT /api/dumps/{id}/
@@ -110,7 +118,7 @@ Form-data fields (only the `file` is required if other fields are read-only):
   • file = (new binary file)
 ```
 
-### Partial update (PATCH)
+#### Partial update (PATCH)
 
 ```
 PATCH /api/dumps/{id}/
@@ -120,7 +128,7 @@ Form-data fields:
   • original_name = (optional new original name)
 ```
 
-### Delete a dump
+#### Delete a dump
 
 ```
 DELETE /api/dumps/{id}/
@@ -130,7 +138,7 @@ Returns the deleted object’s metadata JSON and schedules the disk file for rem
 
 ---
 
-## Security & Best Practices
+### Security & Best Practices
 
 * **Never** commit your real `SECRET_KEY` or `config.ini`.
 * Use a **strong**, random `SECRET_KEY` (e.g. via:
@@ -141,7 +149,7 @@ python manage.py shell -c "from django.core.management.utils import get_random_s
 
 ---
 
-## Directory Layout
+### Directory Layout
 
 ```
 crash_store/
@@ -166,7 +174,7 @@ crash_store/
 
 ---
 
-## Support & Contributions
+### Support & Contributions
 
 If you run into issues:
 

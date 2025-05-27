@@ -1,21 +1,19 @@
-# Python byte-code
-__pycache__/
-*.py[cod]
-
-# Virtualenv
-.venv/
-
-# Local config
-config.ini
-
-# SQLite DB
-db.sqlite3
-
-# Django migrations (if you want to generate them elsewhere)
-dumps/migrations/
-
 # macOS Finder
 .DS_Store
 
 # JetBrains IDE settings
 .idea/
+
+# Python byte-code
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+
+# Django / Backend
+backend/config.ini
+backend/db.sqlite3
+backend/**/__pycache__/
+backend/**/*.py[cod]
+backend/dumps/migrations/
