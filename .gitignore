@@ -9,7 +9,7 @@ __pycache__/
 *.py[cod]
 
 # Virtual environment
-.venv/
+backend/.venv/
 
 # Django / Backend
 backend/config.ini
