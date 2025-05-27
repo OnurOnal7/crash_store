@@ -75,7 +75,6 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
         
         return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=instance.original_name)
     
-    # Returns CrashDump's that
     @action(detail=False, methods=['get'], url_path=r'by-label/(?P<label>[^/.]+)')
     def get_by_label(self, request, label=None):
         qs = self.filter_queryset(CrashDump.objects.filter(labels__icontains=f'"{label}"'))
