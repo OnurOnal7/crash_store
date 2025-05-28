@@ -1,4 +1,3 @@
-import json
 import os
 import uuid
 from django.db import transaction
@@ -23,12 +22,7 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
         if not dump_file:
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
         
-        labels = []
-        if 'labels' in request.data:
-            try:
-                labels = json.loads(request.data['labels'])
-            except ValueError:
-                return Response({'error': 'Invalid labels format'}, status=status.HTTP_400_BAD_REQUEST)
+        label = request.data.get('label')
         
         original_name = dump_file.name
         stored_name = uuid.uuid4().hex
@@ -37,7 +31,7 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
         try:
             self._save_file(dump_file, dest)
             with transaction.atomic():
-                dump = CrashDump.objects.create(original_name=original_name, stored_name=stored_name, labels=labels)
+                dump = CrashDump.objects.create(original_name=original_name, stored_name=stored_name, label=label)
                 serializer = self.get_serializer(dump)
         except Exception:
             self._delete_file(dest)
@@ -77,7 +71,7 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path=r'by-label/(?P<label>[^/.]+)')
     def get_by_label(self, request, label=None):
-        qs = self.filter_queryset(CrashDump.objects.filter(labels__icontains=f'"{label}"'))
+        qs = self.filter_queryset(CrashDump.objects.filter(label__icontains=label))
         page = self.paginate_queryset(qs)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -94,12 +88,7 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
         if not partial and not dump_file:
             return Response({'error': 'File is required for PUT requests.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        labels = []
-        if 'labels' in request.data:
-            try:
-                labels = json.loads(request.data['labels'])
-            except ValueError:
-                return Response({'error': 'Invalid labels format'}, status=status.HTTP_400_BAD_REQUEST)
+        label = request.data.get('label')
         
         new_dest = None
         if dump_file:
@@ -112,14 +101,12 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
                 self._delete_file(new_dest)
                 raise
             
-            # Full PUT file replace
             instance.original_name = dump_file.name
             instance.stored_name = new_name
         
-        # Labels passed in PATCH
-        if 'labels' in request.data:
-            instance.labels = labels
-            
+        if label is not None:
+            instance.label = label
+        
         try:
             with transaction.atomic():
                 serializer = self.get_serializer(instance, data=request.data, partial=partial)
