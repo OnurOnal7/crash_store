@@ -21,6 +21,7 @@ A Django REST API for uploading, storing, retrieving, and deleting crash dump fi
   * `original_name` (the uploaded filename)
   * `stored_name` (a generated UUID used on disk)
   * `time` (upload timestamp)
+  * `label` (optional tag associated with the dump)
 
 ---
 
@@ -93,12 +94,19 @@ POST /api/dumps/
 Content-Type: multipart/form-data
 Form-data fields:
   • file = (binary file)
+  • label = (optional string)
 ```
 
 #### Retrieve a dump’s metadata
 
 ```
 GET /api/dumps/{id}/
+```
+
+#### Retrieve dumps by label
+
+```
+GET /api/dumps/by-label/{label}/
 ```
 
 #### Download the raw dump file
@@ -114,8 +122,9 @@ Returns a `FileResponse` with `Content-Disposition: attachment; filename=<origin
 ```
 PUT /api/dumps/{id}/
 Content-Type: multipart/form-data
-Form-data fields (only the `file` is required if other fields are read-only):
+Form-data fields:
   • file = (new binary file)
+  • label = (optional string)
 ```
 
 #### Partial update (PATCH)
@@ -124,8 +133,8 @@ Form-data fields (only the `file` is required if other fields are read-only):
 PATCH /api/dumps/{id}/
 Content-Type: multipart/form-data
 Form-data fields:
-  • file = (optional new file → updates only stored_name & file)
-  • original_name = (optional new original name)
+  • file = (optional new file)
+  • label = (optional string)
 ```
 
 #### Delete a dump
@@ -152,7 +161,7 @@ python manage.py shell -c "from django.core.management.utils import get_random_s
 ### Directory Layout
 
 ```
-crash_store/
+backend/
 ├── config.example.ini    # template for config.ini
 ├── config.ini            # (ignored in Git)
 ├── manage.py             # Django CLI
