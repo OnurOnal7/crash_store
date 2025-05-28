@@ -71,7 +71,7 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path=r'by-label/(?P<label>[^/.]+)')
     def get_by_label(self, request, label=None):
-        qs = self.filter_queryset(CrashDump.objects.filter(label__icontains=label))
+        qs = self.filter_queryset(CrashDump.objects.filter(label=label))
         page = self.paginate_queryset(qs)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
