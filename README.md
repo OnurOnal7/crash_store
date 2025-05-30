@@ -183,7 +183,6 @@ All endpoints under `/api/users/` require `is_staff=True`:
 
   ````bash
   python manage.py shell -c "from django.core.management.utils import get_random_secret_key; print(_)"
-  ```)
   ````
 * Short-lived `ACCESS_TOKEN_LIFETIME` and longer `REFRESH_TOKEN_LIFETIME` balance security and usability.
 * In production, set `DEBUG = False` and populate `ALLOWED_HOSTS`.
