@@ -6,6 +6,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.conf import settings
 from dumps.models import CrashDump
 from dumps.serializers import CrashDumpSerializer
@@ -16,6 +17,11 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
     serializer_class = CrashDumpSerializer
     parser_classes = [MultiPartParser, FormParser]
     
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+    
     # Override create method to handle file uploads
     def create(self, request, *args, **kwargs):
         dump_file = request.FILES.get('file')
@@ -23,7 +29,6 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
         
         label = request.data.get('label')
-        
         original_name = dump_file.name
         stored_name = uuid.uuid4().hex
         dest = self._build_path(stored_name)
