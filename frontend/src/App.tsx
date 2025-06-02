@@ -1,22 +1,24 @@
-import { Layout, Card, Typography } from 'antd';
-import DumpList from './components/DumpList';
-import './App.css';
-
-const { Content } = Layout;
-const { Title } = Typography;
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import DumpListPage from "./pages/DumpListPage";
 
 export default function App() {
   return (
-    <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
-      <Content className="app-content">
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 24 }}>
-          Crash Dumps Dashboard
-        </Title>
-
-        <Card variant="borderless" styles={{ body: { padding: 0 } }}>          
-          <DumpList />
-        </Card>
-      </Content>
-    </Layout>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <DumpListPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
