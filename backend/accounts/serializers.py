@@ -38,3 +38,6 @@ class AdminUserSerializer(serializers.ModelSerializer):
     
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = User.USERNAME_FIELD
+    
+class ClientTokenRequestSerializer(serializers.Serializer):
+    client_secret = serializers.CharField(write_only=True)

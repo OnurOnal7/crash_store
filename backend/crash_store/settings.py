@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Read config file
 config = ConfigParser(interpolation=None)
-config.read(os.path.join(BASE_DIR, 'config.ini'))
+config.read(os.path.join(BASE_DIR, "config.ini"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config.get('django', 'SECRET_KEY')
@@ -125,15 +125,15 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-# Locate project root
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Load config.ini if it exists
-config = ConfigParser()
-config.read(os.path.join(BASE_DIR, 'config.ini'))
-
 # Compute the default fallback directoryZZZ
 default_dumps_dir = os.path.join(BASE_DIR, 'data', 'dumps')
 
 # Use the .ini value if present, otherwise use the fallback
 DUMPS_BASE_DIR = config.get('paths', 'dumps_dir', fallback=default_dumps_dir)
+
+# Shared secret key between backend and the C++ uploader binary
+MACHINE_CLIENT_SECRET = config["machine"]["secret"]
+
+# The email of the machine user
+MACHINE_CLIENT_EMAIL = config["machine"]["email"]
+

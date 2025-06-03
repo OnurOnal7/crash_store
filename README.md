@@ -20,6 +20,8 @@ A Django REST API for uploading, storing, retrieving, and deleting crash dump fi
   * `stored_name` (a generated UUID used on disk)
   * `time` (upload timestamp)
   * `label` (optional tag associated with the dump)
+  * `archived` (boolean flag indicating if the dump has been moved to archival storage)
+
 
 ---
 
@@ -52,6 +54,10 @@ pip install django djangorestframework djangorestframework-simplejwt
    [django]
    SECRET_KEY = replace-with-a-secure-random-string
    DEBUG = True
+   
+   [machine]
+   secret = replace-with-machine-client-secret
+   email  = machine@yourdomain.com
    ```
 
 3. **Ignore** your real config:
@@ -107,6 +113,16 @@ By default, the API is served at `http://127.0.0.1:8000/api/`.
   ```
 
   → returns `{ "access": "<new token>" }`
+
+* **POST** `/api/auth/client-token/`
+
+  ```json
+  { "client_secret": "replace-with-machine-client-secret" }
+  ```
+
+  → returns `{ "access": "<short-lived token>" }`
+
+  (Used by the C++ uploader to obtain a JWT for authenticated uploads.)
 
 #### Crash Dump Operations
 
@@ -225,5 +241,7 @@ If you run into issues:
 1. Verify `config.ini` exists and is valid.
 2. Ensure `DUMPS_BASE_DIR` is writable.
 3. Check JWT settings (`SIMPLE_JWT`) and migrations for `accounts`.
+4. For machine uploads, confirm the C++ client uses the correct (`client_secret`).
+
 
 Feel free to open an issue or submit a merge request on GitLab.
