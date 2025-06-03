@@ -22,6 +22,7 @@ export default function LoginForm() {
         values.password
       )) as { access: string; refresh: string };
 
+      localStorage.setItem("userEmail", values.email);
       localStorage.setItem("accessToken", access);
       localStorage.setItem("refreshToken", refresh);
 

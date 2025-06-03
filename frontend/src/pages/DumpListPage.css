@@ -4,3 +4,19 @@
   padding: 40px 24px;
   background: #f0f2f5;
 }
+
+.avatar-dropdown {
+  position: absolute;
+  top: 32px;
+  right: 24px;
+  color: black;
+  background-color: #f0f2f5;
+  border: 1.5px solid #000;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.avatar-dropdown .anticon {
+  font-size: 24px;
+  color: black;
+}
