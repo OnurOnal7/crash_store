@@ -1,4 +1,4 @@
-import { Layout, Card, Typography, Dropdown, Avatar } from 'antd';
+import { Layout, Card, Dropdown, Avatar } from 'antd';
 import type { MenuProps } from 'antd';
 import { UserOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -6,7 +6,6 @@ import DumpList from '../components/DumpList';
 import './DumpListPage.css';
 
 const { Content } = Layout;
-const { Title } = Typography;
 
 export default function DumpListPage() {
   const navigate = useNavigate();
@@ -48,10 +47,6 @@ export default function DumpListPage() {
       </Dropdown>
       
       <Content className="app-content">
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 24 }}>
-          Crash Dumps Dashboard
-        </Title>
-
         <Card variant="borderless" styles={{ body: { padding: 0 } }}>
           <DumpList />
         </Card>

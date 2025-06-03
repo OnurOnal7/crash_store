@@ -80,3 +80,18 @@ export async function deleteDump(id: number): Promise<void> {
   if (!res.ok) throw new Error(`deleteDump failed: ${res.status} ${res.statusText}`);
 }
 
+// Toggles the archived flag on a CrashDump
+export async function patchArchived(id: number, archived: boolean): Promise<CrashDump> {
+  const res = await withAuth(token =>
+    fetch(`${BASE}/${id}/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({ archived }),
+    })
+  );
+  if (!res.ok) throw new Error(`patchArchived failed: ${res.status} ${res.statusText}`);
+  return (await res.json()) as CrashDump;
+}

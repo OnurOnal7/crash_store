@@ -4,4 +4,5 @@ export interface CrashDump {
   stored_name: string;
   time: string;
   label: string;
+  archived: boolean;
 }

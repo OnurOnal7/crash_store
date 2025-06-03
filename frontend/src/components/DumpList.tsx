@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchDumps, downloadDump, deleteDump } from "../features/dumps/api";
+import { fetchDumps, downloadDump, deleteDump, patchArchived } from "../features/dumps/api";
 import type { CrashDump } from "../features/dumps/types";
-import { Table, Space, Popconfirm, message } from "antd";
+import { Table, Space, Popconfirm, Checkbox, message, Typography } from "antd";
+import './DumpList.css';
 
 const { Column } = Table;
+const { Title } = Typography;
 
 export default function DumpList() {
   const [dumps, setDumps] = useState<CrashDump[]>([]);
+  const [archivedDumps, setArchivedDumps] = useState<CrashDump[]>([]);
   const [loading, setLoading] = useState(true);
+  const [checkedArchive, setCheckedArchive] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
 
@@ -20,7 +24,8 @@ export default function DumpList() {
         //localStorage.removeItem("refreshToken");
         const data = await fetchDumps();
         const sorted = data.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-        setDumps(sorted);
+        setDumps(sorted.filter(d => !d.archived));
+        setArchivedDumps(sorted.filter(d => d.archived));
       } catch (err) {
         console.error(err);
         messageApi.error("Failed to load dumps");
@@ -48,19 +53,56 @@ export default function DumpList() {
       await deleteDump(id);
       setDumps(dumps.filter(d => d.id !== id));
       messageApi.success("Dump deleted");
-    }
-    catch (err) {
+    } catch (err) {
       console.error(err);
       messageApi.error("Delete failed");
     }
   };
+
+  const handleArchive = async (dump: CrashDump) => {
+    try {
+      const updated = await patchArchived(dump.id, true);
+      setDumps(prev => prev.filter(d => d.id !== dump.id));
+      setArchivedDumps(prev => [...prev, updated]);
+      messageApi.success("Dump archived");
+    } catch (err) {
+      console.error(err);
+      messageApi.error("Archive failed");
+    }
+  }
+
+  const handleUnarchive = async (dump: CrashDump) => {
+    try {
+      const updated = await patchArchived(dump.id, false);
+      setDumps(prev => [...prev, updated]);
+      setArchivedDumps(prev => prev.filter(d => d.id !== dump.id));
+      messageApi.success("Dump unarchived");  
+    } catch (err) {
+      console.error(err);
+      messageApi.error("Unarchive failed"); 
+    }
+  }
 
   return (
     <>
       {contextHolder}
 
       <Table<CrashDump>
-        dataSource={dumps}
+        title={() => (
+          <div className="table-header">
+            <Title level={3} className="table-title">
+              Crash Dumps Dashboard
+            </Title>            
+            <Checkbox
+              checked={checkedArchive}
+              onChange={e => setCheckedArchive(e.target.checked)}
+              className="archive-checkbox"
+            >
+              Show Archived
+            </Checkbox>
+          </div>
+        )}
+        dataSource={checkedArchive ? [...dumps, ...archivedDumps] : dumps}
         rowKey="id"
         loading={loading}
         pagination={{ pageSize: 8, position: ['bottomRight'] }}
@@ -103,6 +145,12 @@ export default function DumpList() {
               >
                 <a style={{ color: 'red' }}>Delete</a>
               </Popconfirm>
+              <a 
+                onClick={() => record.archived ? handleUnarchive(record) : handleArchive(record)} 
+                style={{ color: record.archived ? "#28a745" : "#6c757d" }}
+              >
+                {record.archived ? "Unarchive" : "Archive"}
+              </a>
             </Space>
           )}
         />
