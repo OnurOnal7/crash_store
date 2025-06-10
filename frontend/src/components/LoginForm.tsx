@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { loginUser } from "../features/auth/api";
-import { Form, Input, Button, Space, Typography, message } from "antd";
+import { Form, Input, Button, message } from "antd";
 import "./LoginForm.css";
-
-const { Text } = Typography;
 
 export default function LoginForm() {
   const [form] = Form.useForm();
@@ -73,13 +71,6 @@ export default function LoginForm() {
           <Button type="primary" htmlType="submit" loading={loading} block>
             Login
           </Button>
-        </Form.Item>
-
-        <Form.Item className="register-link-item">
-          <Space direction="horizontal" style={{ width: "100%" }}>
-            <Text>Don't have an account?</Text>
-            <Link to="/register">Register</Link>
-          </Space>
         </Form.Item>
       </Form>
     </>
