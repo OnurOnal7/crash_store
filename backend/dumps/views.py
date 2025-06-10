@@ -6,19 +6,16 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser
 from django.conf import settings
 from dumps.models import CrashDump
 from dumps.serializers import CrashDumpSerializer
-
 
 class CrashDumpViewSet(viewsets.ModelViewSet):
     queryset = CrashDump.objects.all().order_by('-time')
     serializer_class = CrashDumpSerializer
     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    
-    def get_permissions(self):
-        return [IsAuthenticated()]
+    permission_classes = [IsAdminUser]
     
     # Override create method to handle file uploads
     def create(self, request, *args, **kwargs):

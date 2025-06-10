@@ -1,20 +1,15 @@
 from datetime import timedelta
 from django.contrib.auth import get_user_model
-from rest_framework import viewsets, generics, permissions, status
+from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from crash_store import settings
-from .serializers import RegistrationSerializer, AdminUserSerializer, EmailTokenObtainPairSerializer, ClientTokenRequestSerializer
+from .serializers import AdminUserSerializer, EmailTokenObtainPairSerializer, ClientTokenRequestSerializer
 
 User = get_user_model()
 
-class RegistrationView(generics.CreateAPIView):
-    serializer_class = RegistrationSerializer
-    permission_classes = [permissions.AllowAny]
-    
 class LoginView(TokenObtainPairView):
     serializer_class = EmailTokenObtainPairSerializer
     permission_classes = [permissions.AllowAny]
