@@ -5,4 +5,5 @@ export interface CrashDump {
   time: string;
   label: string;
   archived: boolean;
+  description: string;
 }

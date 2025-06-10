@@ -27,6 +27,7 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
         
         label = request.data.get('label')
+        description = request.data.get('description')
         original_name = dump_file.name
         stored_name = uuid.uuid4().hex
         dest = self._build_path(stored_name)
@@ -34,7 +35,7 @@ class CrashDumpViewSet(viewsets.ModelViewSet):
         try:
             self._save_file(dump_file, dest)
             with transaction.atomic():
-                dump = CrashDump.objects.create(original_name=original_name, stored_name=stored_name, label=label)
+                dump = CrashDump.objects.create(original_name=original_name, stored_name=stored_name, label=label, description=description)
                 serializer = self.get_serializer(dump)
         except Exception:
             self._delete_file(dest)

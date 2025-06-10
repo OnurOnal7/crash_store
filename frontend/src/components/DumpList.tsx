@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchDumps, downloadDump, deleteDump, patchArchived } from "../features/dumps/api";
 import type { CrashDump } from "../features/dumps/types";
-import { Table, Space, Popconfirm, Checkbox, message, Typography } from "antd";
+import { Table, Space, Popconfirm, Checkbox, message, Typography, Tooltip } from "antd";
 import './DumpList.css';
 
 const { Column } = Table;
@@ -20,8 +20,6 @@ export default function DumpList() {
     const loadDumps = async () => {
       setLoading(true);
       try {
-        //localStorage.removeItem("accessToken");
-        //localStorage.removeItem("refreshToken");
         const data = await fetchDumps();
         const sorted = data.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
         setDumps(sorted.filter(d => !d.archived));
@@ -153,6 +151,15 @@ export default function DumpList() {
               </a>
             </Space>
           )}
+        />
+        <Column
+          title="Description"
+          dataIndex="description"
+          width={150}
+          render={text => text
+              ? <Tooltip title={text}><span style={{ cursor: 'pointer' }}>View</span></Tooltip>
+              : <em>—</em>
+          }
         />
       </Table>
     </>  
