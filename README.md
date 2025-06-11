@@ -6,6 +6,116 @@ A Django REST API for uploading, storing, retrieving, and deleting crash dump fi
 
 ## Frontend
 
+### Tech Stack
+
+* **Framework:** React 19.1.0 with Vite
+* **Language:** TypeScript
+* **UI Library:** Ant Design
+* **Routing:** react-router-dom
+* **State & Data Fetching:** Built-in React hooks + custom features module
+
+### Setup & Development
+
+1. **Navigate to the frontend folder**
+
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   # or
+   yarn
+   ```
+
+3. **Run in development mode**
+
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+   Opens at `http://localhost:5173` by default.
+
+4. **Build for production**
+
+   ```bash
+   npm run build
+   # or
+   yarn build
+   ```
+
+   Outputs static assets to `dist/`.
+
+5. **Preview production build**
+
+   ```bash
+   npm run serve
+   # or
+   yarn serve
+   ```
+
+### Available Scripts
+
+* `dev` : Start Vite development server with HMR.
+* `build` : Bundle the app for production.
+* `serve` : Preview the production build locally.
+
+### Directory Structure
+
+```
+frontend/
+├── public/             # Static assets served at root
+│   └── vite.svg
+├── src/
+│   ├── assets/         # Images & logos
+│   │   └── simsoft.jpg
+│   ├── components/     # Reusable UI components
+│   │   ├── LoginForm.tsx
+│   │   ├── DumpList.tsx
+│   │   └── ProtectedRoute.tsx
+│   ├── features/       # API modules & type definitions
+│   │   ├── auth/
+│   │   │   ├── api.ts
+│   │   │   └── types.ts
+│   │   └── dumps/
+│   │       ├── api.ts
+│   │       └── types.ts
+│   ├── pages/          # Route-level pages
+│   │   ├── LoginPage.tsx
+│   │   └── DumpListPage.tsx
+│   ├── App.tsx         # Route definitions
+│   └── main.tsx        # Entry point
+├── .env                # Environment variables (VITE_API_URL)
+├── index.html          # HTML template
+├── package.json        # npm scripts & dependencies
+├── tsconfig.json       # TypeScript config
+└── vite.config.ts      # Vite config
+```
+
+### Features & Usage
+
+* **Login Flow**
+
+  * `LoginForm` posts to `/api/auth/login/`
+  * Stores `accessToken` and `refreshToken` in `localStorage`
+  * Redirects to protected routes via `ProtectedRoute`
+
+* **Protected Routes**
+
+  * `ProtectedRoute` component checks for `accessToken` and redirects to `/login` if missing
+
+* **Crash Dumps Dashboard**
+
+  * `DumpList` component fetches `/api/dumps/`
+  * Displays table with sortable columns: Filename, Uploaded At, Label
+  * Includes actions: Download, Delete, Archive/Unarchive
+  * Shows long descriptions via popovers
+  * Toggle to show archived dumps
+
 ---
 
 ## Backend
@@ -15,13 +125,14 @@ A Django REST API for uploading, storing, retrieving, and deleting crash dump fi
 * **Tech stack:** Django 5.2.1, Django REST Framework, djangorestframework-simplejwt
 * **Storage layout:** Uploaded dumps are saved under `<DUMPS_BASE_DIR>/<first_char>/<second_char>/<uuid>`
 * **Metadata fields:**
-
   * `original_name` (the uploaded filename)
   * `stored_name` (a generated UUID used on disk)
   * `time` (upload timestamp)
   * `label` (optional tag associated with the dump)
   * `archived` (boolean flag indicating if the dump has been moved to archival storage)
-
+  * `description` (optional text notes attached to the dump)
+* **Admin panel:**  
+  The Django admin is mounted at `/admin/` and exposes only the **User** model for CRUD.
 
 ---
 
@@ -70,17 +181,22 @@ pip install django djangorestframework djangorestframework-simplejwt
 
 ```bash
 python manage.py makemigrations
-django_manage.py makemigrations accounts
 python manage.py migrate
 ```
 
-#### 4. Run the Server
+#### 4. Create an Admin User
+
+```bash
+python manage.py createsuperuser
+```
+
+#### 5. Run the Server
 
 ```bash
 python manage.py runserver
 ```
 
-By default, the API is served at `http://127.0.0.1:8000/api/`.
+By default, the API is served at `http://127.0.0.1:8000/api/` and the admin at `http://127.0.0.1:8000/admin/`.
 
 ---
 
@@ -89,14 +205,6 @@ By default, the API is served at `http://127.0.0.1:8000/api/`.
 > All endpoints expect or return JSON unless noted.
 
 #### Authentication (public)
-
-* **POST** `/api/auth/register/`
-
-  ```json
-  { "email": "user@example.com", "password": "SecurePass123!" }
-  ```
-
-  → creates a user, returns `{ "id": 1, "email": "user@example.com" }`
 
 * **POST** `/api/auth/login/`
 
@@ -124,71 +232,57 @@ By default, the API is served at `http://127.0.0.1:8000/api/`.
 
   (Used by the C++ uploader to obtain a JWT for authenticated uploads.)
 
-#### Crash Dump Operations
+#### Crash Dump Operations (admin-only)
 
 * **GET** `/api/dumps/`
-  List all dumps (`IsAuthenticated`)
+  List all dumps
 
 * **POST** `/api/dumps/`
-  Upload a new dump (`AllowAny`)
+  Upload a new dump
   Content-Type: multipart/form-data
   Form-data fields:
+
   • `file` = (binary file)
+
   • `label` = (optional string)
 
+  • `description` = (optional text)
+
 * **GET** `/api/dumps/{id}/`
-  Retrieve a dump’s metadata (`IsAuthenticated`)
+  Retrieve a dump’s metadata
 
 * **GET** `/api/dumps/by-label/{label}/`
-  Retrieve dumps matching a label (`IsAuthenticated`)
+  Retrieve dumps matching a label
 
 * **GET** `/api/dumps/{id}/download/`
-  Download the raw dump file (`IsAuthenticated`)
+  Download the raw dump file
 
 * **PUT** `/api/dumps/{id}/`
-  Full replace (`IsAuthenticated`)
-  Form-data fields: file + optional label
+  Full replace 
+  Form-data fields: file + optional label + optional description
 
 * **PATCH** `/api/dumps/{id}/`
-  Partial update (`IsAuthenticated`)
-  Form-data fields: file and/or label
+  Partial update
+  Form-data fields: file and/or label and/or description
 
 * **DELETE** `/api/dumps/{id}/`
-  Delete a dump (`IsAuthenticated`)
+  Delete a dump
 
 #### User Management (admin-only)
 
-All endpoints under `/api/users/` require `is_staff=True`:
+All endpoints under `/api/users/` require `is_staff=true`:
 
 * **GET** `/api/users/`
-  List all users
 
 * **POST** `/api/users/`
-  Create new user:
-
-  ```json
-  { "email": "new@example.com", "password": "Pass123!", "is_active": true, "is_staff": false }
-  ```
 
 * **GET** `/api/users/{id}/`
-  Retrieve a single user
 
 * **PUT** `/api/users/{id}/`
-  Full update:
-
-  ```json
-  { "email": "updated@example.com", "password": "NewPass456!", "is_active": false, "is_staff": true }
-  ```
 
 * **PATCH** `/api/users/{id}/`
-  Partial update, e.g.:
-
-  ```json
-  { "password": "AnotherPass789!" }
-  ```
 
 * **DELETE** `/api/users/{id}/`
-  Delete user
 
 ---
 
@@ -212,23 +306,23 @@ All endpoints under `/api/users/` require `is_staff=True`:
 backend/
 ├── accounts/             # custom user app
 │   ├── apps.py           # AccountsConfig
+│   ├── admin.py          # UserAdmin registration
 │   ├── models.py         # UserManager & User model
 │   ├── serializers.py    # RegistrationSerializer, AdminUserSerializer, JWT serializers
-│   ├── views.py          # RegistrationView, LoginView, RefreshView, UserViewSet
-│   └── urls.py?          # if split
+│   └── views.py          # RegistrationView, LoginView, RefreshView, UserViewSet
 ├── config.example.ini    # template for config.ini
 ├── config.ini            # (ignored in Git)
 ├── crash_store/          # project settings & URLs
 │   ├── asgi.py
 │   ├── settings.py       # loads SECRET_KEY, DEBUG, DUMPS_BASE_DIR, JWT
-│   ├── urls.py           # includes /api/auth/, /api/dumps/, /api/users/
+│   ├── urls.py           # includes /admin/, /api/auth/, /api/dumps/, /api/users/
 │   └── wsgi.py
 ├── dumps/                # crash dump app
 │   ├── apps.py           # DumpsConfig
 │   ├── models.py         # CrashDump model
 │   ├── serializers.py    # CrashDumpSerializer
 │   ├── views.py          # CrashDumpViewSet
-│   └── apps.py
+│   └── admin.py          # (empty; CrashDump not registered)
 └── manage.py             # Django CLI
 ```
 
@@ -240,8 +334,16 @@ If you run into issues:
 
 1. Verify `config.ini` exists and is valid.
 2. Ensure `DUMPS_BASE_DIR` is writable.
-3. Check JWT settings (`SIMPLE_JWT`) and migrations for `accounts`.
-4. For machine uploads, confirm the C++ client uses the correct (`client_secret`).
+3. Check migrations:
+    ```bash
+    python manage.py makemigrations
+    python manage.py migrate
+    ```
+4. Confirm you have an admin user:
+   ```bash
+    python manage.py createsuperuser
+   ```
+5. For machine uploads, confirm the C++ client uses the correct (`client_secret`).
 
 
 Feel free to open an issue or submit a merge request on GitLab.
