@@ -1,6 +1,6 @@
 # Crash Store
 
-A Django REST API for uploading, storing, retrieving, and deleting crash dump files.
+A full-stack web application for uploading, storing, retrieving, and managing crash dump files.
 
 ---
 
