@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: crash-store-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - /Users/onursmacbook/srv/crash_store/config.ini:/app/config.ini:ro
+      - /Users/onursmacbook/srv/crash_store/db.sqlite3:/app/db.sqlite3
+      - /Users/onursmacbook/srv/crash_store/data/dumps:/app/data/dumps
+    environment:
+      DJANGO_SETTINGS_MODULE: crash_store.settings
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: crash-store-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  proxy:
+    image: nginx:alpine
+    container_name: crash-store-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
+      - frontend

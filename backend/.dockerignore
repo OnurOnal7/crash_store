@@ -1,0 +1,18 @@
+# Byte-compiled Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+
+# SQLite database
+db.sqlite3
+
+# Local config
+config.ini
+.env
+
+# OS and IDE artifacts
+.DS_Store
+.idea/

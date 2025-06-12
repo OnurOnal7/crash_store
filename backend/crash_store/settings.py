@@ -16,7 +16,7 @@ SECRET_KEY = config.get('django', 'SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config.getboolean('django', 'DEBUG', fallback=False)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'crash.simsoft.com.tr', '192.168.1.71']
 
 # Application definition
 
@@ -129,15 +129,16 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-# Compute the default fallback directoryZZZ
-default_dumps_dir = os.path.join(BASE_DIR, 'data', 'dumps')
-
-# Use the .ini value if present, otherwise use the fallback
-DUMPS_BASE_DIR = config.get('paths', 'dumps_dir', fallback=default_dumps_dir)
+# Compute a dumps path that's always under the repo
+raw_dir = config.get('paths', 'dumps_dir', fallback='data/dumps')
+# If they gave an absolute path, use it; otherwise interpret relative to BASE_DIR
+if os.path.isabs(raw_dir):
+    DUMPS_BASE_DIR = Path(raw_dir)
+else:
+    DUMPS_BASE_DIR = BASE_DIR / Path(raw_dir)
 
 # Shared secret key between backend and the C++ uploader binary
 MACHINE_CLIENT_SECRET = config["machine"]["secret"]
 
 # The email of the machine user
 MACHINE_CLIENT_EMAIL = config["machine"]["email"]
-

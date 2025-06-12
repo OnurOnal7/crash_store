@@ -89,11 +89,13 @@ frontend/
 │   │   └── DumpListPage.tsx
 │   ├── App.tsx         # Route definitions
 │   └── main.tsx        # Entry point
-├── .env                # Environment variables (VITE_API_URL)
+├── .env                # Environment variables
 ├── index.html          # HTML template
 ├── package.json        # npm scripts & dependencies
 ├── tsconfig.json       # TypeScript config
-└── vite.config.ts      # Vite config
+├── vite.config.ts      # Vite config
+├── Dockerfile          # container build instructions for frontend
+└── .dockerignore       # files to exclude from Docker build context
 ```
 
 ### Features & Usage
@@ -145,7 +147,7 @@ git clone git@gitlab.com:simsoft/crash_store.git
 cd crash_store
 python3 -m venv .venv
 source .venv/bin/activate
-pip install django djangorestframework djangorestframework-simplejwt
+pip install -r backend/requirements.txt
 ```
 
 #### 2. Configuration
@@ -323,6 +325,9 @@ backend/
 │   ├── serializers.py    # CrashDumpSerializer
 │   ├── views.py          # CrashDumpViewSet
 │   └── admin.py          # (empty; CrashDump not registered)
+├── Dockerfile            # container build instructions for backend
+├── .dockerignore         # files to exclude from Docker build context
+├── requirements.txt      # Python dependencies for pip install
 └── manage.py             # Django CLI
 ```
 
