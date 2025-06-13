@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchDumps, downloadDump, deleteDump, patchArchived } from "../features/dumps/api";
 import type { CrashDump } from "../features/dumps/types";
+import { LoadingOutlined } from "@ant-design/icons";
 import { Table, Space, Popconfirm, Checkbox, message, Typography, Popover } from "antd";
 import './DumpList.css';
 
@@ -12,6 +13,7 @@ export default function DumpList() {
   const [dumps, setDumps] = useState<CrashDump[]>([]);
   const [archivedDumps, setArchivedDumps] = useState<CrashDump[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingId, setLoadingId] = useState<number | null>(null);
   const [checkedArchive, setCheckedArchive] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
@@ -37,12 +39,15 @@ export default function DumpList() {
   }, [messageApi, navigate]);
 
   const handleDownload = async (id: number, name: string) => {
+    setLoadingId(id);
     try {
       await downloadDump(id, name);
       messageApi.success("Dump downloaded");
     } catch (err) {
       console.error(err);
       messageApi.error("Download failed");
+    } finally {
+      setLoadingId(null);
     }
   };
 
@@ -134,7 +139,16 @@ export default function DumpList() {
           width={120}
           render={(_: any, record: CrashDump) => (
             <Space size="large">
-              <a onClick={() => handleDownload(record.id, record.original_name)}>Download</a>
+              <a
+                onClick={() => handleDownload(record.id, record.original_name)}
+                style={{
+                  pointerEvents: loadingId === record.id ? "none" : undefined,
+                  opacity: loadingId === record.id ? 0.6 : 1,
+                }}
+              >
+                {loadingId === record.id && <LoadingOutlined spin style={{ marginRight: 4 }} />}
+                Download
+              </a>              
               <Popconfirm
                 title="Are you sure you want to delete this dump?"
                 onConfirm={() => handleDelete(record.id)}
