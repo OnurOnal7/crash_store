@@ -20,7 +20,10 @@ backend/**/*.py[cod]
 !/backend/dumps/migrations/__init__.py
 /backend/accounts/migrations/*.py
 !/backend/accounts/migrations/__init__.py
-/backend/data
+/backend/data/
+
+# CPP example
+/examples/cppFile/build/
 
 # Local TLS certificates (mkcert)
 certs/
